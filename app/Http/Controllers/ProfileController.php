@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Redirect;
 
 class ProfileController extends Controller
 {
+    /**
+     * Show the profile edit form.
+     */
     public function edit(Request $request)
     {
         return view('profile.edit', [
@@ -15,12 +18,16 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Update the user's profile information.
+     */
     public function update(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
-            'bio' => ['nullable', 'string', 'max:500'],
+            'bio'   => ['nullable', 'string', 'max:500'],
+            'role'  => ['nullable', 'string', 'in:guest,host,admin'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
 
@@ -28,6 +35,7 @@ class ProfileController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
         $user->bio = $request->bio;
+        $user->role = $request->role;
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('profiles', 'public');
@@ -39,6 +47,9 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
+    /**
+     * Delete the user's account.
+     */
     public function destroy(Request $request)
     {
         $request->validate([
@@ -46,6 +57,7 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
         Auth::logout();
         $user->delete();
 
