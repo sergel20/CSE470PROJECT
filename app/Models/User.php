@@ -31,5 +31,13 @@ class User extends Authenticatable
             ? asset('storage/' . $this->photo)
             : asset('images/default-profile.png');
     }
+
+    /**
+     * Get all listings owned by the user.
+     */
+    public function listings()
+    {
+        return $this->hasMany(Listing::class);
+    }
 }
 
