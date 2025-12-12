@@ -9,7 +9,7 @@
         </p>
     </header>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6" enctype="multipart/form-data">
         @csrf
         @method('patch')
 
@@ -47,6 +47,14 @@
                 <option value="admin" {{ $current === 'admin' ? 'selected' : '' }}>Admin</option>
             </select>
             @error('role') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+        </div>
+
+        <!-- Photo -->
+        <div>
+            <label for="photo" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Profile Photo</label>
+            <input id="photo" name="photo" type="file" accept="image/*"
+                   class="mt-1 block w-full border rounded px-3 py-2">
+            @error('photo') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div class="flex items-center gap-3">
