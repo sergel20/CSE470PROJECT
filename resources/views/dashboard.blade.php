@@ -12,6 +12,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
             <!-- Statistics -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
@@ -47,11 +48,10 @@
                                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ $listing->address }}, {{ $listing->city }}</p>
                                         <div class="flex justify-between items-center mb-3">
                                             <span class="text-lg font-bold text-green-600">${{ number_format($listing->price_per_night, 2) }}/night</span>
-                                            <span class="text-xs px-2 py-1 rounded-full capitalize" :class="{
-                                                'bg-yellow-100 text-yellow-800': '{{ $listing->status }}' === 'draft',
-                                                'bg-green-100 text-green-800': '{{ $listing->status }}' === 'published',
-                                                'bg-red-100 text-red-800': '{{ $listing->status }}' === 'inactive',
-                                            }">
+                                            <span class="text-xs px-2 py-1 rounded-full capitalize
+                                                @if($listing->status === 'draft') bg-yellow-100 text-yellow-800
+                                                @elseif($listing->status === 'published') bg-green-100 text-green-800
+                                                @else bg-red-100 text-red-800 @endif">
                                                 {{ ucfirst($listing->status) }}
                                             </span>
                                         </div>
@@ -78,6 +78,35 @@
                     @endif
                 </div>
             </div>
+
+            <!-- Notifications -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mt-8">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <h3 class="text-lg font-semibold mb-4">Notifications</h3>
+
+                    @if(auth()->user()->notifications->count() > 0)
+                        <ul class="space-y-3">
+                            @foreach(auth()->user()->notifications as $notification)
+                                <li class="border-b pb-2 @if(is_null($notification->read_at)) font-bold @endif">
+                                    {{ $notification->data['message'] }}
+                                    <span class="text-sm text-gray-500">
+                                        (Booking ID: {{ $notification->data['booking_id'] }})
+                                    </span>
+                                    @if(is_null($notification->read_at))
+                                        <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="inline">
+                                            @csrf
+                                            <button type="submit" class="ml-2 text-blue-600 text-xs">Mark as read</button>
+                                        </form>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-gray-600 dark:text-gray-400">No notifications yet.</p>
+                    @endif
+                </div>
+            </div>
+
         </div>
     </div>
 </x-app-layout>
