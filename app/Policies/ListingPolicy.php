@@ -12,7 +12,7 @@ class ListingPolicy
      */
     public function update(User $user, Listing $listing): bool
     {
-        return $user->id === $listing->user_id;
+        return $user->id === $listing->user_id || $user->role === 'admin';
     }
 
     /**
@@ -20,6 +20,15 @@ class ListingPolicy
      */
     public function delete(User $user, Listing $listing): bool
     {
-        return $user->id === $listing->user_id;
+        return $user->id === $listing->user_id || $user->role === 'admin';
+    }
+
+    /**
+     * Determine whether the user can toggle active/inactive status (FR‑4).
+     */
+    public function toggleActive(User $user, Listing $listing): bool
+    {
+        return $user->id === $listing->user_id || $user->role === 'admin';
     }
 }
+
