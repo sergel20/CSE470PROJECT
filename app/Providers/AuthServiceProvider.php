@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Policies\ListingPolicy;
 use App\Policies\BookingPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,12 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register the policies defined above
+        $this->registerPolicies();
+
+        // Example global gate: allow admins to bypass all checks
+        Gate::before(function ($user, $ability) {
+            return $user->role === 'admin' ? true : null;
+        });
     }
 }
