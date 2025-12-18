@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Listing extends Model
 {
@@ -29,7 +31,7 @@ class Listing extends Model
         'amenities',
         'main_image',
         'images',
-        'status',
+        'status', // used for FR‑4 (active/inactive)
     ];
 
     protected $casts = [
@@ -41,17 +43,51 @@ class Listing extends Model
     ];
 
     /**
-     * Get the user that owns the listing.
+     * Get the user (host) that owns the listing.
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /**
+     * Relationship: bookings for this listing.
+     * FR‑18: Hosts manage these booking requests.
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Scope: only active listings.
+     * FR‑4: Guests should only see active listings in search.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    /**
+     * Helper: check if listing is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Helper: check if listing is inactive.
+     */
+    public function isInactive(): bool
+    {
+        return $this->status === 'inactive';
+    }
+
+    /**
      * Get the main image URL.
      */
-    public function getMainImageUrlAttribute()
+    public function getMainImageUrlAttribute(): string
     {
         return $this->main_image
             ? asset('storage/' . $this->main_image)
@@ -61,7 +97,7 @@ class Listing extends Model
     /**
      * Get all image URLs.
      */
-    public function getImageUrlsAttribute()
+    public function getImageUrlsAttribute(): array
     {
         if (!$this->images) {
             return [];
@@ -69,3 +105,4 @@ class Listing extends Model
         return array_map(fn($image) => asset('storage/' . $image), $this->images);
     }
 }
+
