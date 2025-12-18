@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,7 +20,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Ensure default string length for older MySQL versions
+        Schema::defaultStringLength(191);
+
+        // You can also place other global bootstrapping logic here,
+        // for example custom Blade directives, macros, etc.
     }
 }
+
 
