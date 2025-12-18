@@ -3,33 +3,29 @@
 namespace App\Providers;
 
 use App\Models\Listing;
+use App\Models\Booking;
 use App\Policies\ListingPolicy;
-use Illuminate\Support\ServiceProvider;
+use App\Policies\BookingPolicy;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
-class AppServiceProvider extends ServiceProvider
+class AuthServiceProvider extends ServiceProvider
 {
     /**
      * The policy mappings for the application.
      *
-     * @var array
+     * @var array<class-string, class-string>
      */
     protected $policies = [
-        Listing::class => ListingPolicy::class,
+        Listing::class => ListingPolicy::class,   // FR‑4: toggle active/inactive
+        Booking::class => BookingPolicy::class,   // FR‑18: approve/decline bookings
     ];
 
     /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
-
-    /**
-     * Bootstrap any application services.
+     * Register any authentication / authorization services.
      */
     public function boot(): void
     {
         //
     }
 }
+
