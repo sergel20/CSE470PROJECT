@@ -9,6 +9,8 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\ListingController;
+use App\Http\Controllers\BookingController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -56,4 +58,23 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
+
+    /**
+     * === Feature Routes ===
+     * FR‑4: Host Listings
+     */
+    Route::get('host/listings', [ListingController::class, 'index'])
+        ->name('host.listings.index');
+    Route::patch('host/listings/{listing}/toggle', [ListingController::class, 'toggleActive'])
+        ->name('host.listings.toggle');
+
+    /**
+     * FR‑18: Host Bookings
+     */
+    Route::get('host/bookings', [BookingController::class, 'index'])
+        ->name('host.bookings.index');
+    Route::patch('host/bookings/{booking}/approve', [BookingController::class, 'approve'])
+        ->name('host.bookings.approve');
+    Route::patch('host/bookings/{booking}/decline', [BookingController::class, 'decline'])
+        ->name('host.bookings.decline');
 });
