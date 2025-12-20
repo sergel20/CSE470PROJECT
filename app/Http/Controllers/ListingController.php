@@ -11,13 +11,14 @@ use Illuminate\Http\Request;
 class ListingController extends Controller
 {
     /**
-     * Display a listing of the host's own listings.
+     * Display a listing of the host's own listings (FR‑4 dashboard).
      */
     public function index(Request $request)
     {
         $listings = Listing::where('user_id', $request->user()->id)->get();
 
-        return view('listings.index', compact('listings'));
+        // Point to the host dashboard view
+        return view('host.listings.index', compact('listings'));
     }
 
     /**
@@ -33,7 +34,6 @@ class ListingController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate all fields at once
         $validated = $request->validate([
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:100',
@@ -169,4 +169,3 @@ class ListingController extends Controller
         ];
     }
 }
-
