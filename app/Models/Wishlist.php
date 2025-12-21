@@ -2,19 +2,36 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class User extends Authenticatable
+class Wishlist extends Model
 {
-    // ... other properties and methods
+    use HasFactory;
+
+    protected $table = 'wishlist'; // matches your migration
+
+    protected $fillable = [
+        'user_id',
+        'listing_id',
+    ];
 
     /**
-     * Relationship: a user can have many wishlist items.
+     * Relationship: Wishlist belongs to a User.
      */
-    public function wishlist(): HasMany
+    public function user(): BelongsTo
     {
-        return $this->hasMany(Wishlist::class);
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relationship: Wishlist belongs to a Listing.
+     */
+    public function listing(): BelongsTo
+    {
+        return $this->belongsTo(Listing::class);
     }
 }
+
 
