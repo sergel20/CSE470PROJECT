@@ -16,7 +16,7 @@ class Booking extends Model
         'nightly_rate',
         'service_fee',
         'total_price',
-        'status', // pending | approved | declined
+        'status', // pending | approved | declined | completed
     ];
 
     protected $casts = [
@@ -46,7 +46,7 @@ class Booking extends Model
      */
     public function host(): BelongsTo
     {
-        return $this->listing()->withDefault()->user();
+        return $this->belongsTo(User::class, 'host_id');
     }
 
     /**
@@ -74,6 +74,22 @@ class Booking extends Model
     }
 
     /**
+     * Scope: upcoming bookings (FR‑20).
+     */
+    public function scopeUpcoming($query)
+    {
+        return $query->whereDate('check_in', '>=', now());
+    }
+
+    /**
+     * Scope: past bookings (FR‑20).
+     */
+    public function scopePast($query)
+    {
+        return $query->whereDate('check_out', '<', now());
+    }
+
+    /**
      * Helper: check if booking is pending.
      */
     public function isPending(): bool
@@ -98,6 +114,14 @@ class Booking extends Model
     }
 
     /**
+     * Helper: check if booking is completed (FR‑20).
+     */
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed';
+    }
+
+    /**
      * Approve the booking (FR‑18).
      */
     public function approve(): void
@@ -112,5 +136,12 @@ class Booking extends Model
     {
         $this->update(['status' => 'declined']);
     }
-}
 
+    /**
+     * Mark booking as completed (FR‑20).
+     */
+    public function complete(): void
+    {
+        $this->update(['status' => 'completed']);
+    }
+}
