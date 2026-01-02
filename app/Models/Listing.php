@@ -31,7 +31,8 @@ class Listing extends Model
         'amenities',
         'main_image',
         'images',
-        'status', // used for FR‑4 (active/inactive)
+        'status',     // legacy support for FR‑4
+        'is_active',  // preferred boolean field for FR‑4
     ];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class Listing extends Model
         'price_per_night' => 'decimal:2',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
+        'is_active' => 'boolean',
     ];
 
     /**
@@ -60,12 +62,24 @@ class Listing extends Model
     }
 
     /**
+     * Relationship: wishlist entries for this listing.
+     * FR‑21: Guests can save listings.
+     */
+    public function wishlistedBy(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
      * Scope: only active listings.
      * FR‑4: Guests should only see active listings in search.
      */
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where(function ($q) {
+            $q->where('status', 'active')
+              ->orWhere('is_active', true);
+        });
     }
 
     /**
@@ -73,7 +87,7 @@ class Listing extends Model
      */
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->is_active || $this->status === 'active';
     }
 
     /**
@@ -81,7 +95,7 @@ class Listing extends Model
      */
     public function isInactive(): bool
     {
-        return $this->status === 'inactive';
+        return !$this->is_active || $this->status === 'inactive';
     }
 
     /**
