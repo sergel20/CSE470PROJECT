@@ -29,7 +29,7 @@ class User extends Authenticatable
     /**
      * Accessor for profile photo URL.
      */
-    public function getPhotoUrlAttribute()
+    public function getPhotoUrlAttribute(): string
     {
         return $this->photo
             ? asset('storage/' . $this->photo)
@@ -47,10 +47,36 @@ class User extends Authenticatable
 
     /**
      * Bookings made by the user (guest).
+     * FR‑20: Guests can view their booking history.
      */
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'guest_id');
+    }
+
+    /**
+     * Bookings received by the host on their listings.
+     * FR‑18: Hosts manage booking requests.
+     */
+    public function hostBookings(): HasMany
+    {
+        return $this->hasManyThrough(
+            Booking::class,
+            Listing::class,
+            'user_id',   // Foreign key on listings table
+            'listing_id', // Foreign key on bookings table
+            'id',        // Local key on users table
+            'id'         // Local key on listings table
+        );
+    }
+
+    /**
+     * Wishlist items saved by the user (guest).
+     * FR‑21: Guests can save listings.
+     */
+    public function wishlist(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
     }
 
     /**
@@ -77,3 +103,4 @@ class User extends Authenticatable
         return $this->role === 'guest';
     }
 }
+
