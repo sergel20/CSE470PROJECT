@@ -11,6 +11,8 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\GuestBookingController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -78,4 +80,21 @@ Route::middleware('auth')->group(function () {
         ->name('host.bookings.approve');
     Route::patch('host/bookings/{booking}/decline', [BookingController::class, 'decline'])
         ->name('host.bookings.decline');
+
+    /**
+     * FR‑20: Guest Booking History
+     */
+    Route::get('guest/bookings', [GuestBookingController::class, 'index'])
+        ->name('guest.bookings.index');
+
+    /**
+     * FR‑21: Wishlist
+     */
+    Route::get('guest/wishlist', [WishlistController::class, 'index'])
+        ->name('wishlist.index');
+    Route::post('guest/wishlist/{listing}', [WishlistController::class, 'store'])
+        ->name('wishlist.store');
+    Route::delete('guest/wishlist/{wishlist}', [WishlistController::class, 'destroy'])
+        ->name('wishlist.remove');
 });
+
