@@ -3,12 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Models\Property;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $properties = Property::latest()->take(10)->get();
-        return view('home', compact('properties'));
+        // Authenticated hosts: send to dashboard (host work in progress)
+        if (Auth::check() && Auth::user()->role === 'host') {
+            return redirect()->route('dashboard');
+        }
+
+        // Guests and unauthenticated visitors see the property gallery (home view).
+        $hasFilters = $request->filled('q') || $request->filled('min_price') || $request->filled('max_price');
+
+        if ($hasFilters) {
+            $query = Property::query();
+
+            if ($q = $request->input('q')) {
+                $query->where('title', 'like', "%{$q}%")
+                      ->orWhere('description', 'like', "%{$q}%");
+            }
+
+            if ($min = $request->input('min_price')) {
+                $query->where('price', '>=', $min);
+            }
+
+            if ($max = $request->input('max_price')) {
+                $query->where('price', '<=', $max);
+            }
+
+            $properties = $query->latest()->take(50)->get();
+            return view('home', compact('properties', 'hasFilters'));
+        }
+
+        // No filters: show curated galleries
+        $featured = Property::where('featured', true)->latest()->take(6)->get();
+        $popular = Property::whereNotNull('rating')->orderByDesc('rating')->take(6)->get();
+        $recent = Property::latest()->take(6)->get();
+
+        return view('home', compact('featured', 'popular', 'recent', 'hasFilters'));
     }
 }

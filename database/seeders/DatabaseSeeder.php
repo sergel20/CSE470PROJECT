@@ -21,5 +21,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+        // Seed sample properties for guest homepage
+        $this->call(\Database\Seeders\PropertySeeder::class);
     }
 }

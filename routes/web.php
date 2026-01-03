@@ -15,6 +15,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', function () {
+        $user = auth()->user();
+        if ($user && $user->role === 'guest') {
+            return view('guest.message', ['message' => 'You are a guest']);
+        }
+
         return view('dashboard');
     })->name('dashboard');
 

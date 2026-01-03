@@ -5,7 +5,7 @@
         </h2>
 
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __("Update your account's profile information, email, bio, and role.") }}
+            {{ __("Update your account's profile information, email, and bio.") }}
         </p>
     </header>
 
@@ -37,17 +37,13 @@
             @error('bio') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
         </div>
 
-        <!-- Role -->
+        <!-- Role (readonly) -->
         <div>
-            <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
-            <select id="role" name="role" class="mt-1 block w-full border rounded px-3 py-2">
-                @php $current = old('role', $user->role); @endphp
-                <option value="guest" {{ $current === 'guest' ? 'selected' : '' }}>Guest</option>
-                <option value="host" {{ $current === 'host' ? 'selected' : '' }}>Host</option>
-                <option value="admin" {{ $current === 'admin' ? 'selected' : '' }}>Admin</option>
-            </select>
-            @error('role') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
+            <div class="mt-1 block w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100">{{ ucfirst($user->role ?? 'guest') }}</div>
         </div>
+
+
 
         <!-- Photo -->
         <div>

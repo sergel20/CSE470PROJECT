@@ -27,7 +27,6 @@ class ProfileController extends Controller
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'bio'   => ['nullable', 'string', 'max:500'],
-            'role'  => ['nullable', 'string', 'in:guest,host,admin'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
 
@@ -35,7 +34,6 @@ class ProfileController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
         $user->bio = $request->bio;
-        $user->role = $request->role;
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('profiles', 'public');
