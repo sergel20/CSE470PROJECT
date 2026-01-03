@@ -25,6 +25,9 @@ class User extends Authenticatable
 
     protected $appends = ['photo_url'];
 
+    /**
+     * Accessor for profile photo URL.
+     */
     public function getPhotoUrlAttribute()
     {
         return $this->photo
@@ -38,6 +41,14 @@ class User extends Authenticatable
     public function listings()
     {
         return $this->hasMany(Listing::class);
+    }
+
+    /**
+     * Feature 5: Get all recent searches made by the user.
+     */
+    public function recentSearches()
+    {
+        return $this->hasMany(RecentSearch::class);
     }
 }
 
