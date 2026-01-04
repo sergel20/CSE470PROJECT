@@ -1,122 +1,128 @@
+{{-- resources/views/properties/show.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-3">{{ $property->title }}</h1>
+<div class="max-w-6xl mx-auto px-4 py-8">
 
-    <div class="mb-4">
-        <p class="text-gray-700">{{ $property->description }}</p>
+    {{-- PROPERTY HEADER --}}
+    <h1 class="text-3xl font-bold mb-2">{{ $property->title }}</h1>
+    <p class="text-gray-600 mb-4">{{ $property->address }}</p>
+
+    {{-- AVERAGE RATING --}}
+    <div class="flex items-center gap-2 mb-6">
+        @if($property->reviews->count())
+            <span class="text-yellow-500 text-lg">
+                {{ number_format($property->averageRating(), 1) }} ★
+            </span>
+            <span class="text-gray-500">
+                ({{ $property->reviews->count() }} reviews)
+            </span>
+        @else
+            <span class="text-gray-400">No reviews yet</span>
+        @endif
     </div>
 
-    <div class="mb-4">
-        <span class="font-medium">Price per night:</span>
-        <span>${{ $property->price }}</span>
+    {{-- IMAGE GALLERY --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        @foreach($property->images as $image)
+            <img src="{{ asset('storage/'.$image->path) }}"
+                 class="rounded-lg object-cover h-60 w-full">
+        @endforeach
     </div>
 
-    {{-- Amenities --}}
-    @if(!empty($property->amenities))
-        <div class="mb-4">
-            <h3 class="font-semibold">Amenities</h3>
-            <ul class="list-disc list-inside">
-                @php
-                    $amenities = is_array($property->amenities) ? $property->amenities : json_decode($property->amenities, true) ?? [];
-                @endphp
-                @foreach($amenities as $amenity)
-                    <li>{{ $amenity }}</li>
+    {{-- PROPERTY DETAILS --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        {{-- LEFT SECTION --}}
+        <div class="md:col-span-2">
+            <h2 class="text-xl font-semibold mb-2">Description</h2>
+            <p class="text-gray-700 mb-6">{{ $property->description }}</p>
+
+            <h2 class="text-xl font-semibold mb-2">Amenities</h2>
+            <ul class="grid grid-cols-2 gap-2 mb-8">
+                @foreach($property->amenities as $amenity)
+                    <li class="text-gray-700">• {{ $amenity }}</li>
                 @endforeach
             </ul>
-        </div>
-    @endif
 
-    {{-- Host info --}}
-    @if($property->host)
-        <div class="mb-6 flex items-center gap-4">
-            <img src="{{ $property->host->photo_url }}" alt="{{ $property->host->name }}" class="w-16 h-16 rounded-full object-cover">
-            <div>
-                <div class="font-medium">{{ $property->host->name }}</div>
-                <div class="text-sm text-gray-600">{{ $property->host->listings()->count() }} properties</div>
-                @if($property->host->bio)
-                    <div class="text-sm text-gray-600">{{ $property->host->bio }}</div>
+            {{-- REVIEWS SECTION (FR-11) --}}
+            <h2 class="text-2xl font-semibold mb-4">Guest Reviews</h2>
+
+            @forelse($property->reviews as $review)
+                <div class="border rounded-lg p-4 mb-4">
+                    <div class="flex justify-between items-center mb-1">
+                        <strong>{{ $review->user->name }}</strong>
+                        <span class="text-yellow-500">
+                            {{ str_repeat('★', $review->rating) }}
+                        </span>
+                    </div>
+                    <p class="text-gray-700">{{ $review->comment }}</p>
+                    <small class="text-gray-400">
+                        {{ $review->created_at->format('d M Y') }}
+                    </small>
+                </div>
+            @empty
+                <p class="text-gray-500">No reviews yet for this property.</p>
+            @endforelse
+
+            {{-- REVIEW FORM --}}
+            @auth
+                @if($canReview)
+                    <div class="mt-6 border-t pt-6">
+                        <h3 class="text-lg font-semibold mb-3">Leave a Review</h3>
+
+                        <form method="POST" action="{{ route('reviews.store', $property->id) }}">
+                            @csrf
+
+                            <label class="block mb-2">Rating</label>
+                            <select name="rating" required
+                                class="border rounded p-2 mb-4 w-full">
+                                @for($i=1; $i<=5; $i++)
+                                    <option value="{{ $i }}">{{ $i }}</option>
+                                @endfor
+                            </select>
+
+                            <label class="block mb-2">Comment</label>
+                            <textarea name="comment"
+                                class="border rounded p-2 w-full mb-4"
+                                placeholder="Share your experience..."></textarea>
+
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded">
+                                Submit Review
+                            </button>
+                        </form>
+                    </div>
                 @endif
-                <a href="{{ route('profile.show', $property->host) }}" class="text-sm text-blue-600 hover:underline">View Profile</a>
-            </div>
+            @endauth
+
         </div>
-    @endif
 
-    {{-- Booking button - only guests can see and book --}}
-    @if(Auth::check() && Auth::user()->role === 'guest')
-        <div class="mb-6">
-            <form method="POST" action="{{ route('bookings.store') }}" class="space-y-2">
+        {{-- RIGHT SIDEBAR --}}
+        <div class="border rounded-lg p-4 h-fit">
+            <p class="text-2xl font-bold mb-2">
+                ৳{{ $property->price_per_night }} / night
+            </p>
+
+            <form method="POST" action="{{ route('bookings.store', $property->id) }}">
                 @csrf
-                <input type="hidden" name="host_id" value="{{ $property->host_id }}">
-                <input type="hidden" name="property_id" value="{{ $property->id }}">
 
-                <div>
-                    <label class="block text-sm">Check-in</label>
-                    <input type="date" name="start_date" class="border rounded px-3 py-2" required>
-                </div>
+                <label class="block mb-1">Check-in</label>
+                <input type="date" name="check_in"
+                    class="border p-2 w-full mb-3" required>
 
-                <div>
-                    <label class="block text-sm">Nights</label>
-                    <input type="number" name="nights" min="1" value="1" class="border rounded px-3 py-2 w-24" required>
-                </div>
+                <label class="block mb-1">Check-out</label>
+                <input type="date" name="check_out"
+                    class="border p-2 w-full mb-3" required>
 
-                <div>
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Book Now</button>
-                </div>
+                <label class="block mb-1">Guests</label>
+                <input type="number" name="guests"
+                    class="border p-2 w-full mb-4" required>
+
+                <button class="bg-green-600 text-white w-full py-2 rounded">
+                    Request Booking
+                </button>
             </form>
         </div>
-    @elseif(!Auth::check())
-        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
-            <p class="text-sm"><a href="{{ route('login') }}" class="text-blue-600 underline">Log in</a> as a guest to book this property.</p>
-        </div>
-    @elseif(Auth::check() && Auth::user()->role === 'host')
-        <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded">
-            <p class="text-sm text-gray-600">Only guests can book properties.</p>
-        </div>
-    @endif
-
-    {{-- Edit link for property owner/host only --}}
-    @if(Auth::check() && Auth::user()->id === $property->host_id)
-        <a href="{{ route('properties.edit', $property) }}" class="text-sm text-blue-600">Edit Property</a>
-    @endif
-
-    {{-- Host availability manager (owner only) --}}
-    @if(Auth::check() && Auth::user()->id === $property->host_id)
-        <div class="mt-8 p-4 bg-white dark:bg-gray-800 border rounded">
-            <h3 class="font-semibold mb-2">Manage blocked dates</h3>
-
-            @if(session('status'))
-                <div class="mb-2 text-sm text-green-600">{{ session('status') }}</div>
-            @endif
-
-            <form method="POST" action="{{ route('properties.blocks.store', $property) }}" class="flex items-center gap-2 mb-4">
-                @csrf
-                <input type="date" name="blocked_date" class="border rounded px-3 py-2" required>
-                <button type="submit" class="px-3 py-2 bg-red-600 text-white rounded">Block</button>
-            </form>
-
-            <div>
-                <h4 class="font-medium mb-2">Currently blocked</h4>
-                <div class="space-y-2">
-                    @foreach($property->blockedDates()->orderBy('blocked_date')->get() as $block)
-                        <div class="flex items-center justify-between border rounded px-3 py-2">
-                            <div>{{ $block->blocked_date->toDateString() }}</div>
-                            <form method="POST" action="{{ route('properties.blocks.destroy', [$property, $block]) }}">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-sm text-blue-600">Unblock</button>
-                            </form>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    @endif
-    @if(!Auth::check() || Auth::user()->id !== $property->host_id)
-        <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
-            <p class="text-sm text-yellow-800">Only the property owner can block or unblock dates. Sign in as the host account to manage availability.</p>
-        </div>
-    @endif
+    </div>
 </div>
 @endsection

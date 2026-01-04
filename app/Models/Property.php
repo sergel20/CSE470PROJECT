@@ -24,4 +24,15 @@ class Property extends Model
     {
         return $this->hasMany(BlockedDate::class);
     }
+
+    // app/Models/Property.php
+
+    public function reviews() {
+        return $this->hasMany(Review::class);
+    }
+
+    public function averageRating() {
+        return round($this->reviews()->avg('rating'), 1);
+    }
+
 }
