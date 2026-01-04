@@ -10,41 +10,47 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-        // Authenticated hosts: send to dashboard (host work in progress)
+        // Authenticated hosts: send to dashboard
         if (Auth::check() && Auth::user()->role === 'host') {
             return redirect()->route('dashboard');
         }
 
-        // Guests and unauthenticated visitors see the property gallery (home view).
-        $hasFilters = $request->filled('q') || $request->filled('min_price') || $request->filled('max_price');
+        // Authenticated guests see the property gallery (home view)
+        if (Auth::check() && Auth::user()->role === 'guest') {
+            $hasFilters = $request->filled('q') || $request->filled('min_price') || $request->filled('max_price');
 
-        if ($hasFilters) {
-            $query = Property::query();
+            if ($hasFilters) {
+                $query = Property::query();
 
-            if ($q = $request->input('q')) {
-                // Search by host bio
-                $query->whereHas('host', function ($hostQ) use ($q) {
-                    $hostQ->where('bio', 'like', "%{$q}%");
-                });
+                if ($q = $request->input('q')) {
+                    // Search by property title or description
+                    $query->where(function ($sub) use ($q) {
+                        $sub->where('title', 'like', "%{$q}%")
+                            ->orWhere('description', 'like', "%{$q}%");
+                    });
+                }
+
+                if ($min = $request->input('min_price')) {
+                    $query->where('price', '>=', $min);
+                }
+
+                if ($max = $request->input('max_price')) {
+                    $query->where('price', '<=', $max);
+                }
+
+                $properties = $query->latest()->take(50)->get();
+                return view('home', compact('properties', 'hasFilters'));
             }
 
-            if ($min = $request->input('min_price')) {
-                $query->where('price', '>=', $min);
-            }
+            // No filters: show curated galleries
+            $featured = Property::where('featured', true)->latest()->take(6)->get();
+            $popular = Property::whereNotNull('rating')->orderByDesc('rating')->take(6)->get();
+            $recent = Property::latest()->take(6)->get();
 
-            if ($max = $request->input('max_price')) {
-                $query->where('price', '<=', $max);
-            }
-
-            $properties = $query->latest()->take(50)->get();
-            return view('home', compact('properties', 'hasFilters'));
+            return view('home', compact('featured', 'popular', 'recent', 'hasFilters'));
         }
 
-        // No filters: show curated galleries
-        $featured = Property::where('featured', true)->latest()->take(6)->get();
-        $popular = Property::whereNotNull('rating')->orderByDesc('rating')->take(6)->get();
-        $recent = Property::latest()->take(6)->get();
-
-        return view('home', compact('featured', 'popular', 'recent', 'hasFilters'));
+        // Unauthenticated visitors: show the welcome page
+        return view('welcome');
     }
 }

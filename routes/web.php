@@ -18,6 +18,9 @@ Route::get('/properties/{property}', function (Property $property) {
     return view('properties.show', compact('property'));
 })->name('properties.show');
 
+// Public user profile (view-only)
+Route::get('/profiles/{user}', [ProfileController::class, 'show'])->name('profile.show');
+
 // All routes that require authentication
 Route::middleware('auth')->group(function () {
     // Dashboard
@@ -25,6 +28,12 @@ Route::middleware('auth')->group(function () {
         $user = auth()->user();
         if ($user && $user->role === 'guest') {
             return view('guest.message', ['message' => 'You are a guest']);
+        }
+
+        // Hosts get host dashboard
+        if ($user && $user->role === 'host') {
+            $controller = app(\App\Http\Controllers\HostDashboardController::class);
+            return $controller->index();
         }
 
         return view('dashboard');
@@ -40,6 +49,10 @@ Route::middleware('auth')->group(function () {
 
     // Booking routes
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+
+    // Host availability: block/unblock dates for a property
+    Route::post('/properties/{property}/blocks', [App\Http\Controllers\HostAvailabilityController::class, 'store'])->name('properties.blocks.store');
+    Route::delete('/properties/{property}/blocks/{block}', [App\Http\Controllers\HostAvailabilityController::class, 'destroy'])->name('properties.blocks.destroy');
 
     // Notification routes (FR-3)
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');

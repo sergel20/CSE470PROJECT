@@ -20,7 +20,8 @@ class BookingController extends Controller
         $data = $request->validate([
             'host_id'     => ['required', 'integer', 'exists:users,id'],
             'property_id' => ['required', 'integer', 'exists:properties,id'],
-            'nights'      => ['nullable', 'integer', 'min:1'],
+            'start_date'  => ['required', 'date', 'after_or_equal:today'],
+            'nights'      => ['required', 'integer', 'min:1'],
         ]);
 
         $guestId  = auth()->id();
@@ -37,8 +38,35 @@ class BookingController extends Controller
             abort(403, 'Unauthorized to create booking.');
         }
 
-        // Calculate total price
-        $nights       = $data['nights'] ?? 1;
+        // Calculate total price and date range
+        $nights       = $data['nights'];
+        $startDate    = \Carbon\Carbon::parse($data['start_date'])->startOfDay();
+        $endDate      = (clone $startDate)->addDays($nights - 1)->startOfDay();
+
+        // Check for blocked dates between start and end
+        $blockedExists = \App\Models\BlockedDate::where('property_id', $property->id)
+            ->whereBetween('blocked_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->exists();
+
+        if ($blockedExists) {
+            return back()->withErrors(['booking' => 'Selected dates include blocked dates. Please choose another date.']);
+        }
+
+        // Optional: check existing bookings overlap (simple check)
+        $overlap = Booking::where('property_id', $property->id)
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate->toDateString(), $endDate->toDateString()])
+                  ->orWhereBetween('end_date', [$startDate->toDateString(), $endDate->toDateString()])
+                  ->orWhere(function ($q2) use ($startDate, $endDate) {
+                      $q2->where('start_date', '<=', $startDate->toDateString())
+                         ->where('end_date', '>=', $endDate->toDateString());
+                  });
+            })->exists();
+
+        if ($overlap) {
+            return back()->withErrors(['booking' => 'Selected dates overlap an existing booking.']);
+        }
+
         $nightly_rate = $property->price;
         $service_fee  = $nightly_rate * 0.10; // 10% service fee
         $total_price  = ($nightly_rate * $nights) + $service_fee;
@@ -50,6 +78,8 @@ class BookingController extends Controller
             'property_id'  => $property->id,
             'status'       => 'pending',
             'nights'       => $nights,
+            'start_date'   => $startDate->toDateString(),
+            'end_date'     => $endDate->toDateString(),
             'nightly_rate' => $nightly_rate,
             'service_fee'  => $service_fee,
             'total_price'  => $total_price,

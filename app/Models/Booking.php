@@ -10,6 +10,11 @@ class Booking extends Model
         'guest_id', 'host_id', 'property_id', 'status', 'nights', 'nightly_rate', 'service_fee', 'total_price'
     ];
 
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+    ];
+
     public function guest()
     {
         return $this->belongsTo(User::class, 'guest_id');

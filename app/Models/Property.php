@@ -19,4 +19,9 @@ class Property extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function blockedDates()
+    {
+        return $this->hasMany(BlockedDate::class);
+    }
 }

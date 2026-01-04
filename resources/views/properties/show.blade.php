@@ -46,11 +46,24 @@
     {{-- Booking button - only guests can see and book --}}
     @if(Auth::check() && Auth::user()->role === 'guest')
         <div class="mb-6">
-            <form method="POST" action="{{ route('bookings.store') }}">
+            <form method="POST" action="{{ route('bookings.store') }}" class="space-y-2">
                 @csrf
                 <input type="hidden" name="host_id" value="{{ $property->host_id }}">
                 <input type="hidden" name="property_id" value="{{ $property->id }}">
-                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Book Now</button>
+
+                <div>
+                    <label class="block text-sm">Check-in</label>
+                    <input type="date" name="start_date" class="border rounded px-3 py-2" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm">Nights</label>
+                    <input type="number" name="nights" min="1" value="1" class="border rounded px-3 py-2 w-24" required>
+                </div>
+
+                <div>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Book Now</button>
+                </div>
             </form>
         </div>
     @elseif(!Auth::check())
@@ -66,6 +79,44 @@
     {{-- Edit link for property owner/host only --}}
     @if(Auth::check() && Auth::user()->id === $property->host_id)
         <a href="{{ route('properties.edit', $property) }}" class="text-sm text-blue-600">Edit Property</a>
+    @endif
+
+    {{-- Host availability manager (owner only) --}}
+    @if(Auth::check() && Auth::user()->id === $property->host_id)
+        <div class="mt-8 p-4 bg-white dark:bg-gray-800 border rounded">
+            <h3 class="font-semibold mb-2">Manage blocked dates</h3>
+
+            @if(session('status'))
+                <div class="mb-2 text-sm text-green-600">{{ session('status') }}</div>
+            @endif
+
+            <form method="POST" action="{{ route('properties.blocks.store', $property) }}" class="flex items-center gap-2 mb-4">
+                @csrf
+                <input type="date" name="blocked_date" class="border rounded px-3 py-2" required>
+                <button type="submit" class="px-3 py-2 bg-red-600 text-white rounded">Block</button>
+            </form>
+
+            <div>
+                <h4 class="font-medium mb-2">Currently blocked</h4>
+                <div class="space-y-2">
+                    @foreach($property->blockedDates()->orderBy('blocked_date')->get() as $block)
+                        <div class="flex items-center justify-between border rounded px-3 py-2">
+                            <div>{{ $block->blocked_date->toDateString() }}</div>
+                            <form method="POST" action="{{ route('properties.blocks.destroy', [$property, $block]) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-sm text-blue-600">Unblock</button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+    @if(!Auth::check() || Auth::user()->id !== $property->host_id)
+        <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+            <p class="text-sm text-yellow-800">Only the property owner can block or unblock dates. Sign in as the host account to manage availability.</p>
+        </div>
     @endif
 </div>
 @endsection

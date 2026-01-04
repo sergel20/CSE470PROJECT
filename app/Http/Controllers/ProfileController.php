@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use App\Models\User;
 
 class ProfileController extends Controller
 {
@@ -63,5 +64,18 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Show a public view of a user's profile.
+     */
+    public function show(User $user)
+    {
+        $propertiesCount = $user->listings()->count();
+
+        return view('profile.show', [
+            'user' => $user,
+            'propertiesCount' => $propertiesCount,
+        ]);
     }
 }
