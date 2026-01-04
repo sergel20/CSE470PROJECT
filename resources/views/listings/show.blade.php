@@ -135,11 +135,78 @@
                     <div class="text-4xl font-bold text-gray-900 mb-1">${{ number_format($listing->price_per_night, 2) }}</div>
                     <div class="text-gray-600 mb-6">per night</div>
 
-                    <button class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition mb-4">
-                        Reserve Now
-                    </button>
+                    @auth
+                        @if(auth()->user()->role === 'guest')
+                            <!-- Booking Form -->
+                            <form method="POST" action="{{ route('bookings.store') }}" class="space-y-4">
+                                @csrf
+                                <input type="hidden" name="host_id" value="{{ $listing->user_id }}">
+                                <input type="hidden" name="listing_id" value="{{ $listing->id }}">
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Check-in Date</label>
+                                    <input type="date" name="start_date" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900" min="{{ now()->format('Y-m-d') }}">
+                                    @error('start_date')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
 
-                    <div class="border-t border-gray-200 pt-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Number of Nights</label>
+                                    <input type="number" name="nights" required min="1" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900" value="1">
+                                    @error('nights')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-gray-600">Nightly rate:</span>
+                                        <span class="font-medium">${{ number_format($listing->price_per_night, 2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between mb-3 pb-3 border-b border-gray-200">
+                                        <span class="text-gray-600">Service fee (10%):</span>
+                                        <span class="font-medium">${{ number_format($listing->price_per_night * 0.10, 2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold text-lg">
+                                        <span>Total:</span>
+                                        <span id="totalPrice">${{ number_format($listing->price_per_night * 1.10, 2) }}</span>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition">
+                                    Book Now
+                                </button>
+
+                                @if($errors->has('booking'))
+                                    <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                                        <p class="text-red-600 text-sm">{{ $errors->first('booking') }}</p>
+                                    </div>
+                                @endif
+                            </form>
+
+                            <script>
+                                // Update total price when nights change
+                                document.querySelector('input[name="nights"]').addEventListener('change', function() {
+                                    const nightly = {{ $listing->price_per_night }};
+                                    const nights = parseInt(this.value) || 1;
+                                    const total = (nightly * nights) + (nightly * 0.10);
+                                    document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+                                });
+                            </script>
+                        @else
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                                <p class="text-blue-800 font-medium">You are logged in as a host.</p>
+                                <p class="text-blue-600 text-sm mt-1">Hosts cannot book listings.</p>
+                            </div>
+                        @endif
+                    @else
+                        <a href="{{ route('login') }}" class="w-full block text-center bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition">
+                            Sign in to Book
+                        </a>
+                    @endauth
+
+                    <div class="border-t border-gray-200 mt-6 pt-6">
                         <h3 class="font-semibold text-gray-900 mb-4">Property Details</h3>
                         <div class="space-y-3 text-sm">
                             <div class="flex justify-between">

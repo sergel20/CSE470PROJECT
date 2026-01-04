@@ -91,7 +91,8 @@ class BookingController extends Controller
         // Notify the host of the new booking request (FR‑12 host side)
         $host->notify(new BookingRequestNotification($booking));
 
-        return back()->with('status', "Booking request sent! Total: \$$total_price");
+        // Redirect to booking confirmation page
+        return redirect()->route('bookings.confirmation', $booking->id);
     }
 
     /**
@@ -147,5 +148,18 @@ class BookingController extends Controller
         $booking->guest?->notify(new BookingStatusNotification($booking));
 
         return back()->with('status', 'Booking declined and guest notified.');
+    }
+
+    /**
+     * Show booking confirmation page with price breakdown.
+     */
+    public function confirmation(Booking $booking)
+    {
+        // Ensure the current user is the guest who made the booking
+        if ($booking->guest_id !== auth()->id()) {
+            abort(403, 'Unauthorized to view this booking confirmation.');
+        }
+
+        return view('bookings.confirmation', compact('booking'));
     }
 }

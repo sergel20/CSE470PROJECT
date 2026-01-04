@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\BlockedDate;
 use App\Http\Requests\StoreListingRequest;
 use App\Http\Requests\UpdateListingRequest;
 use Illuminate\Support\Facades\Auth;
@@ -146,6 +147,48 @@ class ListingController extends Controller
      * Get available amenities.
      */
     public static function getAmenities()
+    {
+        return self::amenityLabels();
+    }
+
+    public function blockDate(Request $request, Listing $listing)
+    {
+        // Ensure the user is the owner of the listing
+        if ($listing->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized to block dates on this listing.');
+        }
+
+        $validated = $request->validate([
+            'blocked_date' => 'required|date|after_or_equal:today',
+        ]);
+
+        // Check if this date is already blocked
+        BlockedDate::firstOrCreate([
+            'listing_id' => $listing->id,
+            'blocked_date' => $validated['blocked_date'],
+        ]);
+
+        return redirect()->route('dashboard')->with('status', 'Date blocked successfully.');
+    }
+
+    public function unblockDate(Request $request, Listing $listing, BlockedDate $blockedDate)
+    {
+        // Ensure the user is the owner of the listing
+        if ($listing->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized to unblock dates on this listing.');
+        }
+
+        // Ensure the blocked date belongs to this listing
+        if ($blockedDate->listing_id !== $listing->id) {
+            abort(404, 'Blocked date not found for this listing.');
+        }
+
+        $blockedDate->delete();
+
+        return redirect()->route('dashboard')->with('status', 'Date unblocked successfully.');
+    }
+
+    private static function amenityLabels()
     {
         return [
             'wifi' => 'WiFi',

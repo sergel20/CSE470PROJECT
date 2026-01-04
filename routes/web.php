@@ -49,6 +49,11 @@ Route::middleware('auth')->group(function () {
 
     // Booking routes
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/bookings/{booking}/confirmation', [BookingController::class, 'confirmation'])->name('bookings.confirmation');
+
+    // Listing availability: block/unblock dates
+    Route::post('/listings/{listing}/block-date', [ListingController::class, 'blockDate'])->name('listings.block-date');
+    Route::delete('/listings/{listing}/unblock-date/{blockedDate}', [ListingController::class, 'unblockDate'])->name('listings.unblock-date');
 
     // Host availability: block/unblock dates for a property
     Route::post('/properties/{property}/blocks', [App\Http\Controllers\HostAvailabilityController::class, 'store'])->name('properties.blocks.store');
