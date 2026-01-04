@@ -31,8 +31,7 @@ class Listing extends Model
         'amenities',
         'main_image',
         'images',
-        'status',     // legacy support for FR‑4
-        'is_active',  // preferred boolean field for FR‑4
+        'status',
     ];
 
     protected $casts = [
@@ -41,7 +40,6 @@ class Listing extends Model
         'price_per_night' => 'decimal:2',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
-        'is_active' => 'boolean',
     ];
 
     /**
@@ -53,12 +51,19 @@ class Listing extends Model
     }
 
     /**
-     * Relationship: bookings for this listing.
-     * FR‑18: Hosts manage these booking requests.
+     * Bookings for this listing.
      */
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Blocked dates for this listing.
+     */
+    public function blockedDates(): HasMany
+    {
+        return $this->hasMany(BlockedDate::class);
     }
 
     /**

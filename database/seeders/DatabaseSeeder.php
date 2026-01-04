@@ -15,13 +15,27 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create a test guest user
+        User::updateOrCreate(
+            ['email' => 'guest@example.com'],
+            [
+                'name' => 'Test Guest',
+                'password' => bcrypt('password'),
+                'role' => 'guest',
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-        // Seed sample properties for guest homepage
-        $this->call(\Database\Seeders\PropertySeeder::class);
+        // Create a test host user
+        User::updateOrCreate(
+            ['email' => 'testhost@example.com'],
+            [
+                'name' => 'Test Host',
+                'password' => bcrypt('password'),
+                'role' => 'host',
+            ]
+        );
+
+        // Seed sample listings for guest homepage
+        $this->call(\Database\Seeders\ListingSeeder::class);
     }
 }

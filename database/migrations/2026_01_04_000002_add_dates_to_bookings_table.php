@@ -9,7 +9,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->date('start_date')->nullable()->after('property_id');
+            // Add after host_id if property_id doesn't exist
+            if (Schema::hasColumn('bookings', 'property_id')) {
+                $table->date('start_date')->nullable()->after('property_id');
+            } else {
+                $table->date('start_date')->nullable()->after('host_id');
+            }
             $table->date('end_date')->nullable()->after('start_date');
         });
     }

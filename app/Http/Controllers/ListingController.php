@@ -51,12 +51,12 @@ class ListingController extends Controller
         ]);
 
         $validated['user_id'] = Auth::id();
-        $validated['is_active'] = true; // default new listings to active
+        $validated['status'] = 'published'; // default new listings to published
 
         $listing = Listing::create($validated);
 
         return redirect()
-            ->route('listings.show', $listing)
+            ->route('dashboard')
             ->with('success', 'Listing created successfully!');
     }
 

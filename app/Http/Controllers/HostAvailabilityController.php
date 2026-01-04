@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Property;
+use App\Models\Listing;
 use App\Models\BlockedDate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class HostAvailabilityController extends Controller
 {
-    public function store(Request $request, Property $property)
+    public function store(Request $request, Listing $listing)
     {
-        // only property owner can block dates
-        $this->authorizeForUser(Auth::user(), 'update', $property);
+        // only listing owner can block dates
+        $this->authorize('update', $listing);
 
         $request->validate([
             'blocked_date' => ['required', 'date', 'after_or_equal:today'],
@@ -21,18 +21,18 @@ class HostAvailabilityController extends Controller
         $date = $request->input('blocked_date');
 
         $block = BlockedDate::firstOrCreate([
-            'property_id' => $property->id,
+            'listing_id' => $listing->id,
             'blocked_date' => $date,
         ]);
 
         return back()->with('status', 'Date blocked');
     }
 
-    public function destroy(Property $property, BlockedDate $block)
+    public function destroy(Listing $listing, BlockedDate $block)
     {
-        $this->authorizeForUser(Auth::user(), 'update', $property);
+        $this->authorize('update', $listing);
 
-        if ($block->property_id !== $property->id) {
+        if ($block->listing_id !== $listing->id) {
             abort(404);
         }
 

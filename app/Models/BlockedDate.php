@@ -9,7 +9,7 @@ class BlockedDate extends Model
     protected $table = 'blocked_dates';
 
     protected $fillable = [
-        'property_id',
+        'listing_id',
         'blocked_date',
     ];
 
@@ -17,8 +17,8 @@ class BlockedDate extends Model
         'blocked_date' => 'date',
     ];
 
-    public function property()
+    public function listing()
     {
-        return $this->belongsTo(Property::class);
+        return $this->belongsTo(Listing::class);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Property;
+use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,10 +20,10 @@ class HomeController extends Controller
             $hasFilters = $request->filled('q') || $request->filled('min_price') || $request->filled('max_price');
 
             if ($hasFilters) {
-                $query = Property::query();
+                $query = Listing::where('status', 'published');
 
                 if ($q = $request->input('q')) {
-                    // Search by property title or description
+                    // Search by title or description
                     $query->where(function ($sub) use ($q) {
                         $sub->where('title', 'like', "%{$q}%")
                             ->orWhere('description', 'like', "%{$q}%");
@@ -31,23 +31,22 @@ class HomeController extends Controller
                 }
 
                 if ($min = $request->input('min_price')) {
-                    $query->where('price', '>=', $min);
+                    $query->where('price_per_night', '>=', $min);
                 }
 
                 if ($max = $request->input('max_price')) {
-                    $query->where('price', '<=', $max);
+                    $query->where('price_per_night', '<=', $max);
                 }
 
-                $properties = $query->latest()->take(50)->get();
-                return view('home', compact('properties', 'hasFilters'));
+                $listings = $query->latest()->take(50)->get();
+                return view('home', compact('listings', 'hasFilters'));
             }
 
             // No filters: show curated galleries
-            $featured = Property::where('featured', true)->latest()->take(6)->get();
-            $popular = Property::whereNotNull('rating')->orderByDesc('rating')->take(6)->get();
-            $recent = Property::latest()->take(6)->get();
+            $featured = Listing::where('status', 'published')->latest()->take(6)->get();
+            $recent = Listing::where('status', 'published')->latest()->take(6)->get();
 
-            return view('home', compact('featured', 'popular', 'recent', 'hasFilters'));
+            return view('home', compact('featured', 'recent', 'hasFilters'));
         }
 
         // Unauthenticated visitors: show the welcome page

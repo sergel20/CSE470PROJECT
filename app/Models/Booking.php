@@ -11,7 +11,6 @@ class Booking extends Model
         'listing_id',
         'guest_id',
         'host_id',
-        'property_id',
         'check_in',
         'check_out',
         'start_date',
@@ -37,14 +36,6 @@ class Booking extends Model
     public function listing(): BelongsTo
     {
         return $this->belongsTo(Listing::class);
-    }
-
-    /**
-     * Relationship: the property this booking belongs to.
-     */
-    public function property(): BelongsTo
-    {
-        return $this->belongsTo(Property::class);
     }
 
     /**
