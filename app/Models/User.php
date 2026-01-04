@@ -50,5 +50,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(RecentSearch::class);
     }
-}
 
+    /**
+     * Feature 3: Get all bookings where the user is the guest.
+     */
+    public function bookingsAsGuest()
+    {
+        return $this->hasMany(Booking::class, 'guest_id');
+    }
+
+    /**
+     * Feature 3: Get all bookings where the user is the host.
+     */
+    public function bookingsAsHost()
+    {
+        return $this->hasMany(Booking::class, 'host_id');
+    }
+}
