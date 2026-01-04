@@ -6,14 +6,16 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Models\Listing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Carbon\Carbon;
 use App\Notifications\BookingRequestNotification;
 use App\Notifications\BookingStatusNotification;
-use Illuminate\Support\Facades\Gate;
 
 class BookingController extends Controller
 {
     /**
      * Store a new booking request from a guest.
+     * FR‑12: Host notified of new request.
      */
     public function store(Request $request)
     {
@@ -41,10 +43,10 @@ class BookingController extends Controller
 
         // Calculate total price and date range
         $nights = $data['nights'];
-        $startDate = \Carbon\Carbon::parse($data['start_date'])->startOfDay();
+        $startDate = Carbon::parse($data['start_date'])->startOfDay();
         $endDate = (clone $startDate)->addDays($nights - 1)->startOfDay();
 
-        // Check for blocked dates between start and end
+        // Check for blocked dates
         $blockedExists = \App\Models\BlockedDate::where('listing_id', $listing->id)
             ->whereBetween('blocked_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->exists();
@@ -53,7 +55,7 @@ class BookingController extends Controller
             return back()->withErrors(['booking' => 'Selected dates include blocked dates. Please choose another date.']);
         }
 
-        // Optional: check existing bookings overlap (simple check)
+        // Check for overlapping bookings
         $overlap = Booking::where('listing_id', $listing->id)
             ->where(function ($q) use ($startDate, $endDate) {
                 $q->whereBetween('start_date', [$startDate->toDateString(), $endDate->toDateString()])
@@ -74,19 +76,19 @@ class BookingController extends Controller
 
         // Create booking
         $booking = Booking::create([
-            'guest_id' => $guestId,
-            'host_id' => $host->id,
-            'listing_id' => $listing->id,
-            'status' => 'pending',
-            'nights' => $nights,
-            'start_date' => $startDate->toDateString(),
-            'end_date' => $endDate->toDateString(),
+            'guest_id'     => $guestId,
+            'host_id'      => $host->id,
+            'listing_id'   => $listing->id,
+            'status'       => 'pending',
+            'nights'       => $nights,
+            'start_date'   => $startDate->toDateString(),
+            'end_date'     => $endDate->toDateString(),
             'nightly_rate' => $nightly_rate,
-            'service_fee' => $service_fee,
-            'total_price' => $total_price,
+            'service_fee'  => $service_fee,
+            'total_price'  => $total_price,
         ]);
 
-        // Notify the host of the new booking request
+        // Notify the host of the new booking request (FR‑12 host side)
         $host->notify(new BookingRequestNotification($booking));
 
         return back()->with('status', "Booking request sent! Total: \$$total_price");
@@ -99,13 +101,17 @@ class BookingController extends Controller
     {
         $bookings = Booking::whereHas('listing', function ($query) use ($request) {
             $query->where('user_id', $request->user()->id);
-        })->get();
+        })
+        ->with(['listing', 'guest'])
+        ->orderBy('start_date', 'desc')
+        ->get();
 
         return view('host.bookings.index', compact('bookings'));
     }
 
     /**
      * Approve a booking (FR‑18).
+     * FR‑12: Guest notified of approval.
      */
     public function approve(Request $request, Booking $booking)
     {
@@ -115,19 +121,17 @@ class BookingController extends Controller
             return back()->with('error', 'Booking already processed.');
         }
 
-        $booking->status = 'approved';
-        $booking->save();
+        $booking->update(['status' => 'approved']);
 
         // Notify the guest of approval
-        if ($booking->guest) {
-            $booking->guest->notify(new BookingStatusNotification($booking));
-        }
+        $booking->guest?->notify(new BookingStatusNotification($booking));
 
-        return back()->with('status', 'Booking approved.');
+        return back()->with('status', 'Booking approved and guest notified.');
     }
 
     /**
      * Decline a booking (FR‑18).
+     * FR‑12: Guest notified of decline.
      */
     public function decline(Request $request, Booking $booking)
     {
@@ -137,15 +141,11 @@ class BookingController extends Controller
             return back()->with('error', 'Booking already processed.');
         }
 
-        $booking->status = 'declined';
-        $booking->save();
+        $booking->update(['status' => 'declined']);
 
         // Notify the guest of decline
-        if ($booking->guest) {
-            $booking->guest->notify(new BookingStatusNotification($booking));
-        }
+        $booking->guest?->notify(new BookingStatusNotification($booking));
 
-        return back()->with('status', 'Booking declined.');
+        return back()->with('status', 'Booking declined and guest notified.');
     }
 }
-
