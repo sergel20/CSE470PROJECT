@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Models\Booking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class BookingRequestNotification extends Notification
+class BookingStatusNotification extends Notification
 {
     use Queueable;
 
@@ -15,10 +16,10 @@ class BookingRequestNotification extends Notification
     /**
      * Create a new notification instance.
      *
-     * @param  mixed  $booking
+     * @param  \App\Models\Booking  $booking
      * @return void
      */
-    public function __construct($booking)
+    public function __construct(Booking $booking)
     {
         $this->booking = $booking;
     }
@@ -29,7 +30,7 @@ class BookingRequestNotification extends Notification
      * @param  mixed  $notifiable
      * @return array
      */
-    public function via($notifiable)
+    public function via($notifiable): array
     {
         // Send both email and database notifications
         return ['mail', 'database'];
@@ -41,15 +42,16 @@ class BookingRequestNotification extends Notification
      * @param  mixed  $notifiable
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Booking Request')
-            ->line('You have received a new booking request.')
-            ->line('Property ID: ' . $this->booking->property_id)
-            ->line('Guest ID: ' . $this->booking->guest_id)
-            ->action('View Booking', url('/dashboard'))
-            ->line('Thank you for using HomeAway!');
+            ->subject('Booking Status Update')
+            ->greeting('Hello ' . $notifiable->name)
+            ->line("Your booking for {$this->booking->listing->title} has been {$this->booking->status}.")
+            ->line("Check‑in: {$this->booking->check_in->format('M d, Y')}")
+            ->line("Check‑out: {$this->booking->check_out->format('M d, Y')}")
+            ->action('View My Trips', route('guest.bookings.index'))
+            ->line('Thank you for using our platform!');
     }
 
     /**
@@ -58,14 +60,16 @@ class BookingRequestNotification extends Notification
      * @param  mixed  $notifiable
      * @return array
      */
-    public function toDatabase($notifiable)
+    public function toDatabase($notifiable): array
     {
         return [
-            'message'     => 'New booking request received',
-            'booking_id'  => $this->booking->id,
-            'guest_id'    => $this->booking->guest_id,
-            'property_id' => $this->booking->property_id,
-            'status'      => $this->booking->status,
+            'message'       => 'Booking status updated',
+            'booking_id'    => $this->booking->id,
+            'listing_title' => $this->booking->listing->title,
+            'status'        => $this->booking->status,
+            'check_in'      => $this->booking->check_in,
+            'check_out'     => $this->booking->check_out,
         ];
     }
 }
+
