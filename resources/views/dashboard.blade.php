@@ -107,6 +107,30 @@
                 </div>
             </div>
 
+            <!-- Recent Searches (FR-5) -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mt-8">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <h3 class="text-lg font-semibold mb-4">Recent Searches</h3>
+
+                    @if(auth()->user()->recentSearches()->count() > 0)
+                        <ul class="space-y-3">
+                            @foreach(auth()->user()->recentSearches()->latest()->take(5)->get() as $search)
+                                <li class="border-b pb-2">
+                                    <span class="font-semibold">{{ $search->location ?? 'Any location' }}</span>
+                                    | {{ $search->check_in ?? 'N/A' }} → {{ $search->check_out ?? 'N/A' }}
+                                    | Guests: {{ $search->guests ?? 'N/A' }}
+                                    <span class="text-sm text-gray-500">
+                                        ({{ $search->created_at->diffForHumans() }})
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-gray-600 dark:text-gray-400">No recent searches yet.</p>
+                    @endif
+                </div>
+            </div>
+
         </div>
     </div>
-</x-app-layout>
+</x-app-layout> 
