@@ -22,8 +22,10 @@ class HomeController extends Controller
             $query = Property::query();
 
             if ($q = $request->input('q')) {
-                $query->where('title', 'like', "%{$q}%")
-                      ->orWhere('description', 'like', "%{$q}%");
+                // Search by host bio
+                $query->whereHas('host', function ($hostQ) use ($q) {
+                    $hostQ->where('bio', 'like', "%{$q}%");
+                });
             }
 
             if ($min = $request->input('min_price')) {

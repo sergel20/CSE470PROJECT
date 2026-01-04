@@ -32,36 +32,36 @@
     <h2 class="text-2xl font-semibold mb-4">Featured</h2>
     <div class="grid grid-cols-3 gap-4 mb-8">
         @foreach($featured as $property)
-            <div class="border p-4">
+            <a href="{{ route('properties.show', $property) }}" class="block border p-4 hover:shadow">
                 @php $photo = $property->photo ? asset('storage/' . $property->photo) : 'https://via.placeholder.com/400x300?text=No+Image'; @endphp
                 <img src="{{ $photo }}" alt="{{ $property->title }}" class="w-full h-48 object-cover mb-2">
                 <h3 class="font-semibold">{{ $property->title }}</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-300">${{ $property->price }}</p>
-            </div>
+            </a>
         @endforeach
     </div>
 
     <h2 class="text-2xl font-semibold mb-4">Popular</h2>
     <div class="grid grid-cols-3 gap-4 mb-8">
         @foreach($popular as $property)
-            <div class="border p-4">
+            <a href="{{ route('properties.show', $property) }}" class="block border p-4 hover:shadow">
                 @php $photo = $property->photo ? asset('storage/' . $property->photo) : 'https://via.placeholder.com/400x300?text=No+Image'; @endphp
                 <img src="{{ $photo }}" alt="{{ $property->title }}" class="w-full h-48 object-cover mb-2">
                 <h3 class="font-semibold">{{ $property->title }}</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-300">Rating: {{ $property->rating ?? '—' }}</p>
-            </div>
+            </a>
         @endforeach
     </div>
 
     <h2 class="text-2xl font-semibold mb-4">Recent</h2>
     <div class="grid grid-cols-3 gap-4">
         @foreach($recent as $property)
-            <div class="border p-4">
+            <a href="{{ route('properties.show', $property) }}" class="block border p-4 hover:shadow">
                 @php $photo = $property->photo ? asset('storage/' . $property->photo) : 'https://via.placeholder.com/400x300?text=No+Image'; @endphp
                 <img src="{{ $photo }}" alt="{{ $property->title }}" class="w-full h-48 object-cover mb-2">
                 <h3 class="font-semibold">{{ $property->title }}</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-300">${{ $property->price }}</p>
-            </div>
+            </a>
         @endforeach
     </div>
 @endif

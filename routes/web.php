@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Route;
 // Homepage with property gallery
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Public property show route (guest listing detail)
+use App\Models\Property;
+Route::get('/properties/{property}', function (Property $property) {
+    return view('properties.show', compact('property'));
+})->name('properties.show');
+
 // All routes that require authentication
 Route::middleware('auth')->group(function () {
     // Dashboard
