@@ -10,7 +10,7 @@ class Wishlist extends Model
 {
     use HasFactory;
 
-    protected $table = 'wishlist'; // matches your migration
+    protected $table = 'wishlists'; // matches the migration
 
     protected $fillable = [
         'user_id',

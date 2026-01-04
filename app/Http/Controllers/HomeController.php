@@ -38,13 +38,13 @@ class HomeController extends Controller
                     $query->where('price_per_night', '<=', $max);
                 }
 
-                $listings = $query->latest()->take(50)->get();
+                $listings = $query->with('reviews')->latest()->take(50)->get();
                 return view('home', compact('listings', 'hasFilters'));
             }
 
             // No filters: show curated galleries
-            $featured = Listing::where('status', 'published')->latest()->take(6)->get();
-            $recent = Listing::where('status', 'published')->latest()->take(6)->get();
+            $featured = Listing::where('status', 'published')->with('reviews')->latest()->take(6)->get();
+            $recent = Listing::where('status', 'published')->with('reviews')->latest()->take(6)->get();
 
             return view('home', compact('featured', 'recent', 'hasFilters'));
         }

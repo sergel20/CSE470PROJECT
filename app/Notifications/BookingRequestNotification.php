@@ -7,7 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class BookingStatusNotification extends Notification
+class BookingRequestNotification extends Notification
 {
     use Queueable;
 
@@ -45,13 +45,15 @@ class BookingStatusNotification extends Notification
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Booking Status Update')
+            ->subject('New Booking Request')
             ->greeting('Hello ' . $notifiable->name)
-            ->line("Your booking for {$this->booking->listing->title} has been {$this->booking->status}.")
-            ->line("Check‑in: {$this->booking->check_in->format('M d, Y')}")
-            ->line("Check‑out: {$this->booking->check_out->format('M d, Y')}")
-            ->action('View My Trips', route('guest.bookings.index'))
-            ->line('Thank you for using our platform!');
+            ->line("You have received a new booking request for {$this->booking->listing->title}.")
+            ->line("Check-in: " . \Carbon\Carbon::parse($this->booking->start_date)->format('M d, Y'))
+            ->line("Check-out: " . \Carbon\Carbon::parse($this->booking->end_date)->format('M d, Y'))
+            ->line("Guests: {$this->booking->number_of_guests}")
+            ->line("Total Price: \${$this->booking->total_price}")
+            ->action('View Booking', route('dashboard'))
+            ->line('Please review and respond to this booking request.');
     }
 
     /**
@@ -63,12 +65,12 @@ class BookingStatusNotification extends Notification
     public function toDatabase($notifiable): array
     {
         return [
-            'message'       => 'Booking status updated',
+            'message'       => 'New booking request',
             'booking_id'    => $this->booking->id,
             'listing_title' => $this->booking->listing->title,
             'status'        => $this->booking->status,
-            'check_in'      => $this->booking->check_in,
-            'check_out'     => $this->booking->check_out,
+            'check_in'      => $this->booking->start_date,
+            'check_out'     => $this->booking->end_date,
         ];
     }
 }

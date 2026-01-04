@@ -26,6 +26,15 @@
                     <p class="text-sm text-gray-600 dark:text-gray-300">{{ $listing->city }}, {{ $listing->country }}</p>
                     <p class="text-lg font-bold">${{ number_format($listing->price_per_night, 2) }}/night</p>
                     <p class="text-sm text-gray-600 dark:text-gray-300">{{ $listing->bedrooms }} bed • {{ $listing->bathrooms }} bath</p>
+                    @if($listing->reviews->count() > 0)
+                        <div class="mt-2 flex items-center gap-1">
+                            <span class="text-yellow-500">⭐</span>
+                            <span class="font-semibold">{{ number_format($listing->averageRating(), 1) }}</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">({{ $listing->reviews->count() }} {{ $listing->reviews->count() === 1 ? 'review' : 'reviews' }})</span>
+                        </div>
+                    @else
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No reviews</p>
+                    @endif
                 </a>
             @endforeach
         </div>
@@ -40,6 +49,15 @@
                 <h3 class="font-semibold">{{ $listing->title }}</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-300">{{ $listing->city }}, {{ $listing->country }}</p>
                 <p class="text-sm text-gray-600 dark:text-gray-300">${{ number_format($listing->price_per_night, 2) }}/night</p>
+                @if($listing->reviews->count() > 0)
+                    <div class="mt-2 flex items-center gap-1">
+                        <span class="text-yellow-500">⭐</span>
+                        <span class="font-semibold">{{ number_format($listing->averageRating(), 1) }}</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">({{ $listing->reviews->count() }})</span>
+                    </div>
+                @else
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No reviews</p>
+                @endif
             </a>
         @empty
             <div class="col-span-3 text-center text-gray-600 dark:text-gray-300">No featured listings yet.</div>
@@ -55,6 +73,15 @@
                 <h3 class="font-semibold">{{ $listing->title }}</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-300">{{ $listing->city }}, {{ $listing->country }}</p>
                 <p class="text-sm text-gray-600 dark:text-gray-300">${{ number_format($listing->price_per_night, 2) }}/night</p>
+                @if($listing->reviews->count() > 0)
+                    <div class="mt-2 flex items-center gap-1">
+                        <span class="text-yellow-500">⭐</span>
+                        <span class="font-semibold">{{ number_format($listing->averageRating(), 1) }}</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">({{ $listing->reviews->count() }})</span>
+                    </div>
+                @else
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No reviews</p>
+                @endif
             </a>
         @empty
             <div class="col-span-3 text-center text-gray-600 dark:text-gray-300">No recent listings yet.</div>

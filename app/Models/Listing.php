@@ -76,6 +76,22 @@ class Listing extends Model
     }
 
     /**
+     * Reviews for this listing.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get average rating for this listing.
+     */
+    public function averageRating()
+    {
+        return $this->reviews()->avg('rating');
+    }
+
+    /**
      * Scope: only active listings.
      * FR‑4: Guests should only see active listings in search.
      */

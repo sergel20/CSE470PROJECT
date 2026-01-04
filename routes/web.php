@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $user = auth()->user();
         if ($user && $user->role === 'guest') {
-            return view('guest.message', ['message' => 'You are a guest']);
+            return view('guest.dashboard');
         }
 
         // Hosts get host dashboard
@@ -62,7 +62,8 @@ Route::middleware('auth')->group(function () {
 
     // Notification routes (FR-3)
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
-    Route::post('/properties/{id}/review', 
-    [ReviewController::class, 'store']
-    )->middleware('auth');
+    
+    // Review routes
+    Route::get('/bookings/{booking}/review', [ReviewController::class, 'create'])->name('reviews.create');
+    Route::post('/bookings/{booking}/review', [ReviewController::class, 'store'])->name('reviews.store');
 });

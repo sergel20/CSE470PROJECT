@@ -10,12 +10,12 @@ return new class extends Migration
     {
         Schema::create('blocked_dates', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('property_id');
+            $table->unsignedBigInteger('listing_id');
             $table->date('blocked_date');
             $table->timestamps();
 
-            $table->foreign('property_id')->references('id')->on('properties')->onDelete('cascade');
-            $table->unique(['property_id', 'blocked_date']);
+            $table->foreign('listing_id')->references('id')->on('listings')->onDelete('cascade');
+            $table->unique(['listing_id', 'blocked_date']);
         });
     }
 

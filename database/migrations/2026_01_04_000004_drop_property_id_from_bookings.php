@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if column exists before trying to drop
+        if (!Schema::hasColumn('bookings', 'property_id')) {
+            return; // Column doesn't exist, nothing to do
+        }
+        
         Schema::table('bookings', function (Blueprint $table) {
             try {
                 $table->dropForeign(['property_id']);
@@ -18,9 +23,7 @@ return new class extends Migration
                 // Foreign key doesn't exist, continue
             }
             
-            if (Schema::hasColumn('bookings', 'property_id')) {
-                $table->dropColumn('property_id');
-            }
+            $table->dropColumn('property_id');
         });
     }
 
