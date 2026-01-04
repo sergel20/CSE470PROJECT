@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Property;
 use App\Models\RecentSearch;  
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notifiable;
 
 class PropertyController extends Controller
 {
