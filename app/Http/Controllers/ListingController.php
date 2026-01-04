@@ -11,6 +11,17 @@ use Illuminate\Http\Request;
 class ListingController extends Controller
 {
     /**
+     * Display a listing of the host's own listings (FR‑4 dashboard).
+     */
+    public function index(Request $request)
+    {
+        $listings = Listing::where('user_id', $request->user()->id)->get();
+
+        // Point to the host dashboard view
+        return view('host.listings.index', compact('listings'));
+    }
+
+    /**
      * Show the form for creating a new listing.
      */
     public function create()
@@ -23,7 +34,6 @@ class ListingController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate all fields at once
         $validated = $request->validate([
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:100',
@@ -41,6 +51,7 @@ class ListingController extends Controller
         ]);
 
         $validated['user_id'] = Auth::id();
+        $validated['is_active'] = true; // default new listings to active
 
         $listing = Listing::create($validated);
 
@@ -62,7 +73,6 @@ class ListingController extends Controller
      */
     public function edit(Listing $listing)
     {
-        // Authorize that user owns this listing
         $this->authorize('update', $listing);
 
         return view('listings.edit', ['listing' => $listing]);
@@ -73,12 +83,10 @@ class ListingController extends Controller
      */
     public function update(UpdateListingRequest $request, Listing $listing)
     {
-        // Authorize that user owns this listing
         $this->authorize('update', $listing);
 
         $data = $request->validated();
 
-        // Handle amenities array
         if ($request->has('amenities') && is_array($request->amenities)) {
             $data['amenities'] = $request->amenities;
         }
@@ -95,7 +103,6 @@ class ListingController extends Controller
      */
     public function destroy(Listing $listing)
     {
-        // Authorize that user owns this listing
         $this->authorize('delete', $listing);
 
         $listing->delete();
@@ -103,6 +110,19 @@ class ListingController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('success', 'Listing deleted successfully!');
+    }
+
+    /**
+     * Toggle the active/inactive status of a listing (FR‑4).
+     */
+    public function toggleActive(Request $request, Listing $listing)
+    {
+        $this->authorize('toggleActive', $listing);
+
+        $listing->is_active = !$listing->is_active;
+        $listing->save();
+
+        return back()->with('status', 'Listing status updated.');
     }
 
     /**

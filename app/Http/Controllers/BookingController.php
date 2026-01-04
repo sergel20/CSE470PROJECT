@@ -7,12 +7,13 @@ use App\Models\User;
 use App\Models\Property;
 use Illuminate\Http\Request;
 use App\Notifications\BookingRequestNotification;
+use App\Notifications\BookingStatusNotification;
 use Illuminate\Support\Facades\Gate;
 
 class BookingController extends Controller
 {
     /**
-     * Store a new booking request.
+     * Store a new booking request from a guest.
      */
     public function store(Request $request)
     {
@@ -34,7 +35,7 @@ class BookingController extends Controller
         }
 
         // Optional authorization: check a policy or gate if defined
-        if (Gate::denies('create-booking', [$property])) {
+        if (Gate::has('create-booking') && Gate::denies('create-booking', [$property])) {
             abort(403, 'Unauthorized to create booking.');
         }
 
@@ -85,10 +86,66 @@ class BookingController extends Controller
             'total_price'  => $total_price,
         ]);
 
-        // Notify host of new booking request
+        // Notify the host of the new booking request
         $host->notify(new BookingRequestNotification($booking));
 
-        // Redirect back with success message
         return back()->with('status', "Booking request sent! Total: \$$total_price");
     }
+
+    /**
+     * Display bookings for the host's listings (FR‑18).
+     */
+    public function index(Request $request)
+    {
+        $bookings = Booking::whereHas('listing', function ($query) use ($request) {
+            $query->where('user_id', $request->user()->id);
+        })->get();
+
+        return view('host.bookings.index', compact('bookings'));
+    }
+
+    /**
+     * Approve a booking (FR‑18).
+     */
+    public function approve(Request $request, Booking $booking)
+    {
+        $this->authorize('manage', $booking);
+
+        if ($booking->status !== 'pending') {
+            return back()->with('error', 'Booking already processed.');
+        }
+
+        $booking->status = 'approved';
+        $booking->save();
+
+        // Notify the guest of approval
+        if ($booking->guest) {
+            $booking->guest->notify(new BookingStatusNotification($booking));
+        }
+
+        return back()->with('status', 'Booking approved.');
+    }
+
+    /**
+     * Decline a booking (FR‑18).
+     */
+    public function decline(Request $request, Booking $booking)
+    {
+        $this->authorize('manage', $booking);
+
+        if ($booking->status !== 'pending') {
+            return back()->with('error', 'Booking already processed.');
+        }
+
+        $booking->status = 'declined';
+        $booking->save();
+
+        // Notify the guest of decline
+        if ($booking->guest) {
+            $booking->guest->notify(new BookingStatusNotification($booking));
+        }
+
+        return back()->with('status', 'Booking declined.');
+    }
 }
+
