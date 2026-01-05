@@ -66,7 +66,15 @@ class ListingController extends Controller
      */
     public function show(Listing $listing)
     {
-        return view('listings.show', ['listing' => $listing]);
+        $listing->load(['reviews.guest']);
+        $averageRating = $listing->averageRating();
+        $reviewCount = $listing->reviews->count();
+        
+        return view('listings.show', [
+            'listing' => $listing,
+            'averageRating' => $averageRating,
+            'reviewCount' => $reviewCount
+        ]);
     }
 
     /**

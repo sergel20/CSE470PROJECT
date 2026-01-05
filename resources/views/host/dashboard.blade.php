@@ -13,6 +13,84 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
+            <!-- Booking Requests Section -->
+            @if($pendingBookings->count() > 0)
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+                    <div class="flex items-center mb-6">
+                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Booking Requests</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ $pendingBookings->count() }} pending request(s)</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        @foreach($pendingBookings as $booking)
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                    <!-- Booking Info -->
+                                    <div class="flex-1">
+                                        <div class="flex items-start gap-4">
+                                            <!-- Listing Image -->
+                                            <div class="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
+                                                @if($booking->listing->main_image)
+                                                    <img src="{{ asset('storage/' . $booking->listing->main_image) }}" alt="{{ $booking->listing->title }}" class="w-full h-full object-cover">
+                                                @else
+                                                    <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                                        </svg>
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <!-- Details -->
+                                            <div class="flex-1 min-w-0">
+                                                <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ $booking->listing->title }}</h4>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                                    <span class="font-medium">Guest:</span> {{ $booking->guest->name }}
+                                                </p>
+                                                <div class="flex flex-wrap gap-2 text-xs">
+                                                    <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
+                                                        📅 {{ \Carbon\Carbon::parse($booking->start_date)->format('M d') }} - {{ \Carbon\Carbon::parse($booking->end_date)->format('M d, Y') }}
+                                                    </span>
+                                                    <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded">
+                                                        🌙 {{ $booking->nights }} night(s)
+                                                    </span>
+                                                    <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded font-semibold">
+                                                        💰 ${{ number_format($booking->total_price, 2) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <div class="flex gap-2 md:flex-col md:w-32">
+                                        <form method="POST" action="{{ route('host.bookings.approve', $booking) }}" class="flex-1">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm font-medium">
+                                                ✓ Approve
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('host.bookings.decline', $booking) }}" class="flex-1">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-sm font-medium">
+                                                ✕ Decline
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <!-- Statistics -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
@@ -55,9 +133,14 @@
                                             <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{{ $listing->city }}, {{ $listing->country }}</p>
                                             <div class="flex justify-between items-center mb-3">
                                                 <span class="text-lg font-bold text-green-600">${{ number_format($listing->price_per_night, 2) }}/night</span>
-                                                <span class="px-2 py-1 text-xs rounded {{ $listing->status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                                    {{ ucfirst($listing->status) }}
-                                                </span>
+                                                <div class="flex gap-2">
+                                                    <span class="px-2 py-1 text-xs rounded {{ $listing->status === 'published' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' }}">
+                                                        {{ ucfirst($listing->status) }}
+                                                    </span>
+                                                    <span class="px-2 py-1 text-xs rounded {{ $listing->is_active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' }}">
+                                                        {{ $listing->is_active ? 'Active' : 'Inactive' }}
+                                                    </span>
+                                                </div>
                                             </div>
                                             <div class="flex gap-2 text-sm mb-4">
                                                 <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
@@ -67,7 +150,7 @@
                                                     {{ $listing->bedrooms }} bed
                                                 </span>
                                             </div>
-                                            <div class="flex gap-2">
+                                            <div class="flex gap-2 mb-3">
                                                 <a href="{{ route('listings.show', $listing) }}" class="flex-1 text-center px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition text-sm">
                                                     View
                                                 </a>
@@ -75,6 +158,14 @@
                                                     Edit
                                                 </a>
                                             </div>
+                                            <!-- Toggle Active/Inactive -->
+                                            <form method="POST" action="{{ route('host.listings.toggle', $listing) }}" class="w-full">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="w-full px-3 py-2 text-sm rounded transition {{ $listing->is_active ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white' }}">
+                                                    {{ $listing->is_active ? '⏸ Deactivate' : '▶ Activate' }}
+                                                </button>
+                                            </form>
                                         </div>
 
                                         <!-- Right: Calendar -->

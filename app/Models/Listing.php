@@ -32,6 +32,7 @@ class Listing extends Model
         'main_image',
         'images',
         'status',
+        'is_active',
     ];
 
     protected $casts = [

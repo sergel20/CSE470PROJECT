@@ -21,9 +21,9 @@
             <tr>
                 <td>{{ $b->listing->title }}</td>
                 <td>{{ $b->guest->name }}</td>
-                <td>{{ $b->check_in }} – {{ $b->check_out }}</td>
-                <td>{{ $b->guests }}</td>
-                <td>${{ $b->total_price }}</td>
+                <td>{{ $b->start_date }} – {{ $b->end_date }}</td>
+                <td>{{ $b->listing->guest_capacity }}</td>
+                <td>${{ number_format($b->total_price, 2) }}</td>
                 <td>
                     <span class="badge 
                         @if($b->status === 'pending') bg-warning 

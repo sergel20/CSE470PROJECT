@@ -296,7 +296,7 @@
 
             <!-- Buttons -->
             <div class="flex gap-3 pt-6 border-t border-gray-200">
-                <a href="{{ route('listings.show', $listing) }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
+                <a href="{{ route('listings.show', $listing) }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                     Cancel
                 </a>
                 <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition">

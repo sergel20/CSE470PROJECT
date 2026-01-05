@@ -23,11 +23,18 @@
         <!-- Header -->
         <div class="mb-8 flex justify-between items-start">
             <div>
-                <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ $listing->title }}</h1>
-                <div class="flex flex-wrap gap-3 text-gray-600">
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ $listing->title }}</h1>
+                <div class="flex flex-wrap gap-3 text-gray-600 dark:text-gray-400 items-center">
                     <span class="flex items-center gap-1">
                         📍 {{ $listing->address }}, {{ $listing->city }}, {{ $listing->state }} {{ $listing->zip_code }}
                     </span>
+                    @if($reviewCount > 0)
+                        <span class="flex items-center gap-1">
+                            <span class="text-yellow-500">⭐</span>
+                            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ number_format($averageRating, 1) }}</span>
+                            <span class="text-gray-500 dark:text-gray-400">({{ $reviewCount }} {{ $reviewCount === 1 ? 'review' : 'reviews' }})</span>
+                        </span>
+                    @endif
                 </div>
             </div>
 
@@ -52,7 +59,7 @@
                         @else
                             <form method="POST" action="{{ route('wishlist.store', $listing) }}">
                                 @csrf
-                                <button type="submit" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition flex items-center gap-2" title="Add to wishlist">
+                                <button type="submit" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-2" title="Add to wishlist">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                     </svg>
@@ -274,8 +281,59 @@
                         </div>
                     </div>
 
-                    <div class="border-t border-gray-200 mt-6 pt-6">
-                        <h3 class="font-semibold text-gray-900 mb-4">Hosted by</h3>
+                    <!-- Reviews Section -->
+                    <div class="border-t border-gray-200 dark:border-gray-700 mt-6 pt-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-xl">Guest Reviews</h3>
+                            @if($reviewCount > 0)
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">⭐</span>
+                                    <div>
+                                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($averageRating, 1) }}</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ $reviewCount }} {{ $reviewCount === 1 ? 'review' : 'reviews' }}</div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        @if($reviewCount > 0)
+                            <div class="space-y-4">
+                                @foreach($listing->reviews as $review)
+                                    <div class="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0">
+                                        <div class="flex items-start gap-3 mb-2">
+                                            <img src="{{ $review->guest->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($review->guest->name) }}" 
+                                                 alt="{{ $review->guest->name }}" 
+                                                 class="w-10 h-10 rounded-full">
+                                            <div class="flex-1">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ $review->guest->name }}</h4>
+                                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ $review->created_at->format('M Y') }}</span>
+                                                </div>
+                                                <div class="flex items-center gap-1 mb-2">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        @if($i <= $review->rating)
+                                                            <span class="text-yellow-500">⭐</span>
+                                                        @else
+                                                            <span class="text-gray-300 dark:text-gray-600">⭐</span>
+                                                        @endif
+                                                    @endfor
+                                                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ $review->rating }}.0</span>
+                                                </div>
+                                                <p class="text-gray-700 dark:text-gray-300 text-sm">{{ $review->comment }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-8 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                <p class="text-gray-500 dark:text-gray-400">No reviews yet. Be the first to review this property!</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="border-t border-gray-200 dark:border-gray-700 mt-6 pt-6">
+                        <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4">Hosted by</h3>
                         <div class="flex items-center gap-3">
                             <img src="{{ $listing->user->photo_url }}" alt="{{ $listing->user->name }}" class="w-12 h-12 rounded-full">
                             <div>

@@ -32,6 +32,7 @@ return new class extends Migration
             $table->string('main_image')->nullable();
             $table->json('images')->nullable(); // JSON array of image paths
             $table->enum('status', ['draft', 'published', 'inactive'])->default('draft');
+            $table->boolean('is_active')->default(true); // Active/Inactive toggle
             $table->timestamps();
             $table->softDeletes();
         });
